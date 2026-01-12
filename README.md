@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Đang chuyển hướng...</title>
+<meta name="robots" content="noindex, nofollow">
+
+<style>
+  :root {
+    --primary-color: #ff0050; /* Màu đỏ TikTok */
+    --bg-color: #0f172a;
+    --text-color: #ffffff;
+  }
+
+  body {
+    margin: 0;
+    height: 100vh;
+    background-color: var(--bg-color);
+    background-image: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+    color: var(--text-color);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .container {
+    text-align: center;
+    padding: 20px;
+    width: 100%;
+    max-width: 360px;
+    box-sizing: border-box;
+  }
+
+  /* Loader đẹp và mượt hơn */
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    border-top-color: var(--primary-color);
+    animation: spin 0.8s ease-in-out infinite;
+    margin: 0 auto 20px;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  h2 {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+
+  p {
+    font-size: 13px;
+    opacity: 0.6;
+    margin: 0;
+  }
+
+  /* Nút bấm tối ưu CTA */
+  .btn-action {
+    display: none; /* Mặc định ẩn */
+    margin-top: 25px;
+    padding: 14px 32px;
+    border-radius: 50px;
+    border: none;
+    background: var(--primary-color);
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255, 0, 80, 0.4);
+    transition: transform 0.2s;
+    animation: pulse 2s infinite;
+    width: 80%;
+    max-width: 280px;
+  }
+
+  .btn-action:active {
+    transform: scale(0.95);
+  }
+
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 0, 80, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 0, 80, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 0, 80, 0); }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <div class="spinner"></div>
+  <h2 id="status">Đang xử lý kết nối...</h2>
+  <p id="subtext">Vui lòng không tắt trình duyệt</p>
+  
+  <button id="redirectBtn" class="btn-action">
+    MỞ LIÊN KẾT NGAY ➜
+  </button>
+</div>
+
+<script>
+  /* ================= CẤU HÌNH LINK TẠI ĐÂY ================= */
+  const TARGET_URL = "https://vt.tiktok.com/ZSHE7CVpT2QtX-PwIZs/"; 
+  /* ========================================================= */
+
+  const btn = document.getElementById('redirectBtn');
+  const statusText = document.getElementById('status');
+  const subText = document.getElementById('subtext');
+
+  // Kiểm tra môi trường
+  const ua = navigator.userAgent || navigator.vendor || window.opera;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+  const isTikTok = /TikTok/i.test(ua);
+  
+  // Thời gian chờ "giả" để trông tự nhiên (giảm xuống 1s cho nhanh)
+  const delayTime = 1000; 
+
+  function go() {
+    // Dùng replace để không lưu lịch sử, giúp nút Back hoạt động đúng
+    window.location.replace(TARGET_URL); 
+    
+    // Fallback: Nếu lệnh trên thất bại sau 500ms (do trình duyệt chặn), dùng href thường
+    setTimeout(() => {
+        window.location.href = TARGET_URL;
+    }, 500);
+  }
+
+  function showButton() {
+    document.querySelector('.spinner').style.display = 'none';
+    statusText.innerText = "Đã sẵn sàng!";
+    subText.innerText = "Nếu không tự động chuyển, hãy ấn nút dưới";
+    btn.style.display = "inline-block";
+  }
+
+  // LOGIC XỬ LÝ CHÍNH
+  if (isIOS && isTikTok) {
+    // Trường hợp 1: TikTok trên iPhone -> Hiện nút ngay lập tức (không bắt chờ)
+    // Vì iOS TikTok chặn auto-redirect 100%, chờ đợi là vô ích
+    showButton();
+  } else {
+    // Trường hợp 2: Android hoặc Trình duyệt thường -> Auto chuyển
+    setTimeout(() => {
+      go();
+      
+      // AN TOÀN: Sau 2.5s mà vẫn chưa chuyển đi được (do mạng lag hoặc chặn), thì hiện nút
+      setTimeout(showButton, 2500);
+    }, delayTime);
+  }
+
+  // Gán sự kiện click cho nút
+  btn.addEventListener('click', () => {
+    go();
+  });
+</script>
+
+</body>
+</html>
