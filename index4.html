@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Gửi Đặng Huyền Trang ❤️</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+/* --- CẤU HÌNH CƠ BẢN --- */
+body {
+    margin: 0;
+    height: 100vh;
+    /* Nền chuyển màu hồng lãng mạn */
+    background: linear-gradient(135deg, #ff6a88, #ff99ac);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    font-family: 'Segoe UI', sans-serif;
+    color: white;
+    text-align: center;
+}
+
+/* --- CANVAS PHÁO HOA --- */
+#canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 1; /* Nằm dưới nội dung */
+    pointer-events: none; /* Không chặn click chuột */
+}
+
+/* --- NỘI DUNG CHÍNH --- */
+#content {
+    display: none;
+    padding: 20px;
+    z-index: 10; /* Nằm trên pháo hoa */
+    position: relative;
+}
+
+/* Nút bấm ban đầu */
+#start {
+    font-size: 1.4em;
+    padding: 20px 30px;
+    border: 2px solid #fff;
+    border-radius: 15px;
+    cursor: pointer;
+    background: rgba(255,255,255,0.2);
+    z-index: 20;
+    animation: pulse 1.5s infinite;
+    user-select: none;
+}
+@keyframes pulse { 50% { transform: scale(1.05); } }
+
+h1 { animation: glow 2s infinite alternate; }
+@keyframes glow { to { text-shadow: 0 0 25px #ff0033; } }
+
+.images img {
+    width: 130px; height: 130px;
+    border-radius: 15px;
+    margin: 8px;
+    object-fit: cover;
+    border: 3px solid #fff;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* --- POPUP LỜI NHẮN --- */
+#popup {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    justify-content: center; align-items: center;
+    z-index: 99;
+}
+.popup-box {
+    background: #fff; color: #ff3366;
+    padding: 25px; border-radius: 20px;
+    font-size: 1.4em;
+    box-shadow: 0 0 20px rgba(255,255,255,0.5);
+}
+
+/* --- TIM BAY --- */
+.heart {
+    position: fixed; bottom: -20px;
+    animation: floatUp 6s linear infinite;
+    z-index: 5;
+    opacity: 0.8;
+}
+@keyframes floatUp { to { transform: translateY(-110vh); opacity: 0; } }
+
+#qrcode {
+    margin: 15px auto; background: white;
+    padding: 10px; border-radius: 12px; width: max-content;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="canvas"></canvas>
+
+<div id="start">👉 Chạm vào đây nè pé iu 💖</div>
+
+<div id="content">
+    <h1>🎉 Chúc mừng sinh nhật 🎉<br>Đặng Huyền Trang 💕</h1>
+
+    <div class="images">
+        <img src="https://iili.io/f84P5wF.md.png" alt="Ảnh 1">
+        <img src="https://iili.io/f84icb9.md.png" alt="Ảnh 2">
+    </div>
+
+    <p style="font-size: 1.1em; line-height: 1.6;">
+        Pé iu của anh 🥰<br>
+        Chúc em tuổi mới luôn xinh đẹp, hạnh phúc ✨<br>
+        Và luôn yêu đời như cách anh yêu em 😘
+    </p>
+
+    <h3>⏳ Sinh nhật đến sau:</h3>
+    <div id="countdown" style="font-weight:bold; font-size:1.2em;"></div>
+
+    <h2 id="preCountdown" style="display:none; font-size:3em; color:#fff000;"></h2>
+    <h2 id="endMessage" style="display:none; font-size:1.6em; color:#fff000;">
+        Anh chúc Trang sinh nhật thật hạnh phúc ❤️
+    </h2>
+
+    <div style="margin-top:20px;">
+        <small>Quét QR để mở trên điện thoại</small>
+        <div id="qrcode"></div>
+    </div>
+</div>
+
+<div id="popup">
+    <div class="popup-box">💌 Anh yêu em Trang ❤️</div>
+</div>
+
+<audio id="music">
+    <source src="https://cdn.pixabay.com/audio/2022/10/30/audio_0a6b7f0c7f.mp3" type="audio/mpeg">
+</audio>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+/* --- 1. LOGIC GIAO DIỆN CHÍNH --- */
+const start = document.getElementById("start");
+const content = document.getElementById("content");
+const popup = document.getElementById("popup");
+const music = document.getElementById("music");
+const pre = document.getElementById("preCountdown");
+const endMsg = document.getElementById("endMessage");
+
+// Kiểm tra xem có phải mở từ QR không
+const fromQR = new URLSearchParams(location.search).get("qr");
+
+if(fromQR){
+    // Nếu quét QR, vẫn hiện nút Start để đảm bảo nhạc chạy được trên iPhone
+    // Nhưng có thể thay đổi text một chút nếu thích
+}
+
+start.onclick = () => {
+    start.style.display = "none";
+    content.style.display = "block";
+    launchEffect();
+};
+
+function launchEffect(){
+    // Hiện popup lời nhắn nhanh
+    popup.style.display = "flex";
+    setTimeout(() => popup.style.display = "none", 2500);
+
+    // Bắt đầu các hiệu ứng
+    setInterval(createHeart, 400); // Tim bay
+    startFireworks(); // Pháo hoa canvas mới
+    
+    // Kiểm tra ngày để phát nhạc
+    const today = new Date();
+    // Tháng trong JS bắt đầu từ 0 (tháng 1 là 0)
+    const isTestDay = (today.getDate() === 14 && today.getMonth() === 0); 
+    const isBirthday = (today.getDate() === 15 && today.getMonth() === 0);
+
+    // Nếu là hôm nay (test) hoặc ngày mai (sinh nhật) thì chạy nhạc
+    if(isTestDay || isBirthday){
+        startBirthdayMusic();
+    } else {
+        // Nếu không phải ngày sinh nhật, vẫn cho nhạc chạy nhẹ nhàng nếu muốn
+        music.play();
+    }
+}
+
+function startBirthdayMusic(){
+    let c = 3; // Đếm ngược 3 giây trước khi nhạc cao trào
+    pre.style.display = "block";
+    pre.innerText = c;
+
+    const t = setInterval(() => {
+        c--;
+        if(c > 0){
+            pre.innerText = c;
+        } else {
+            clearInterval(t);
+            pre.innerText = "🎉 Happy Birthday! 🎉";
+            music.play(); // Bắt đầu nhạc
+            
+            // Sau khi hiện chữ Happy Birthday 3s thì chuyển sang lời chúc
+            setTimeout(() => {
+                pre.style.display = "none";
+                endMsg.style.display = "block";
+            }, 3000);
+        }
+    }, 1000);
+}
+
+// Tạo tim bay
+function createHeart(){
+    const h = document.createElement("div");
+    h.className = "heart";
+    h.innerHTML = "❤️";
+    h.style.left = Math.random() * 100 + "vw";
+    h.style.fontSize = Math.random() * 20 + 15 + "px";
+    h.style.animationDuration = Math.random() * 2 + 3 + "s"; // Bay tốc độ ngẫu nhiên
+    document.body.appendChild(h);
+    setTimeout(() => h.remove(), 6000);
+}
+
+// Đếm ngược ngày 15/01
+const now = new Date();
+let birthday = new Date(now.getFullYear(), 0, 15);
+if(birthday < now) birthday = new Date(now.getFullYear() + 1, 0, 15);
+
+setInterval(() => {
+    const d = birthday - new Date();
+    const days = Math.floor(d / 86400000);
+    const hours = Math.floor((d % 86400000) / 3600000);
+    const minutes = Math.floor((d % 3600000) / 60000);
+    document.getElementById("countdown").innerText = 
+        `${days} ngày ${hours} giờ ${minutes} phút`;
+}, 1000);
+
+// Tạo QR Code
+new QRCode(document.getElementById("qrcode"), {
+    text: location.origin + location.pathname + "?qr=1",
+    width: 120, height: 120,
+    colorDark : "#ff3366", colorLight : "#ffffff"
+});
+
+
+/* --- 2. HỆ THỐNG PHÁO HOA CANVAS (NÂNG CẤP) --- */
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+let cw = window.innerWidth;
+let ch = window.innerHeight;
+canvas.width = cw;
+canvas.height = ch;
+
+// Resize canvas khi đổi kích thước màn hình
+window.addEventListener('resize', () => {
+    cw = window.innerWidth;
+    ch = window.innerHeight;
+    canvas.width = cw;
+    canvas.height = ch;
+});
+
+let fireworks = [];
+let particles = [];
+let hue = 120;
+let timerTotal = 30; // Tốc độ bắn (càng nhỏ bắn càng dày)
+let timerTick = 0;
+
+function random(min, max) { return Math.random() * (max - min) + min; }
+
+class Firework {
+    constructor(sx, sy, tx, ty) {
+        this.x = sx; this.y = sy;
+        this.sx = sx; this.sy = sy;
+        this.tx = tx; this.ty = ty;
+        this.distanceToTarget = Math.sqrt(Math.pow(tx - sx, 2) + Math.pow(ty - sy, 2));
+        this.distanceTraveled = 0;
+        this.coordinates = [];
+        this.coordinateCount = 3;
+        while(this.coordinateCount--) { this.coordinates.push([this.x, this.y]); }
+        this.angle = Math.atan2(ty - sy, tx - sx);
+        this.speed = 2;
+        this.acceleration = 1.05;
+        this.brightness = random(60, 80); // Độ sáng
+        this.targetRadius = 1;
+    }
+    update(index) {
+        this.coordinates.pop();
+        this.coordinates.unshift([this.x, this.y]);
+        this.targetRadius < 8 ? this.targetRadius += 0.3 : this.targetRadius = 1;
+        this.speed *= this.acceleration;
+        let vx = Math.cos(this.angle) * this.speed;
+        let vy = Math.sin(this.angle) * this.speed;
+        this.distanceTraveled = Math.sqrt(Math.pow(this.sx - this.x - vx, 2) + Math.pow(this.sy - this.y - vy, 2));
+        if(this.distanceTraveled >= this.distanceToTarget) {
+            createParticles(this.tx, this.ty);
+            fireworks.splice(index, 1);
+        } else {
+            this.x += vx; this.y += vy;
+        }
+    }
+    draw() {
+        ctx.beginPath();
+        ctx.moveTo(this.coordinates[this.coordinates.length - 1][0], this.coordinates[this.coordinates.length - 1][1]);
+        ctx.lineTo(this.x, this.y);
+        ctx.strokeStyle = 'hsl(' + hue + ', 100%, ' + this.brightness + '%)';
+        ctx.stroke();
+    }
+}
+
+class Particle {
+    constructor(x, y) {
+        this.x = x; this.y = y;
+        this.coordinates = [];
+        this.coordinateCount = 5;
+        while(this.coordinateCount--) { this.coordinates.push([this.x, this.y]); }
+        this.angle = random(0, Math.PI * 2);
+        this.speed = random(1, 10);
+        this.friction = 0.95;
+        this.gravity = 1;
+        this.hue = random(hue - 50, hue + 50);
+        this.brightness = random(50, 80);
+        this.alpha = 1;
+        this.decay = random(0.015, 0.03);
+    }
+    update(index) {
+        this.coordinates.pop();
+        this.coordinates.unshift([this.x, this.y]);
+        this.speed *= this.friction;
+        this.x += Math.cos(this.angle) * this.speed;
+        this.y += Math.sin(this.angle) * this.speed + this.gravity;
+        this.alpha -= this.decay;
+        if(this.alpha <= this.decay) { particles.splice(index, 1); }
+    }
+    draw() {
+        ctx.beginPath();
+        ctx.moveTo(this.coordinates[this.coordinates.length - 1][0], this.coordinates[this.coordinates.length - 1][1]);
+        ctx.lineTo(this.x, this.y);
+        ctx.strokeStyle = 'hsla(' + this.hue + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
+        ctx.stroke();
+    }
+}
+
+function createParticles(x, y) {
+    let particleCount = 40; // Số lượng hạt pháo hoa nổ ra
+    while(particleCount--) { particles.push(new Particle(x, y)); }
+}
+
+function loop() {
+    requestAnimationFrame(loop);
+    hue += 0.5;
+    
+    // Tạo hiệu ứng mờ dần (trails) thay vì xóa sạch
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'; // Độ mờ của đuôi pháo hoa
+    ctx.fillRect(0, 0, cw, ch);
+    
+    ctx.globalCompositeOperation = 'lighter'; // Trộn màu cho rực rỡ
+
+    let i = fireworks.length;
+    while(i--) {
+        fireworks[i].draw();
+        fireworks[i].update(i);
+    }
+    let j = particles.length;
+    while(j--) {
+        particles[j].draw();
+        particles[j].update(j);
+    }
+
+    if(timerTick >= timerTotal) {
+        // Bắn pháo hoa từ dưới lên, đích đến ngẫu nhiên
+        fireworks.push(new Firework(cw / 2, ch, random(0, cw), random(0, ch / 2)));
+        timerTick = 0;
+    } else {
+        timerTick++;
+    }
+}
+
+// Hàm kích hoạt pháo hoa
+function startFireworks() {
+    loop();
+}
+</script>
+
+</body>
+</html>
